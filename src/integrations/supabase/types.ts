@@ -14,7 +14,293 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      buildings: {
+        Row: {
+          address: string | null
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          address?: string | null
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          address?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      floors: {
+        Row: {
+          building_id: string
+          floor_number: number
+          id: string
+          map_image_url: string | null
+          name: string | null
+        }
+        Insert: {
+          building_id: string
+          floor_number: number
+          id?: string
+          map_image_url?: string | null
+          name?: string | null
+        }
+        Update: {
+          building_id?: string
+          floor_number?: number
+          id?: string
+          map_image_url?: string | null
+          name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "floors_building_id_fkey"
+            columns: ["building_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      navigation_logs: {
+        Row: {
+          completed: boolean | null
+          created_at: string
+          duration_seconds: number | null
+          from_room_id: string
+          id: string
+          is_accessible_route: boolean | null
+          to_room_id: string
+          user_id: string | null
+        }
+        Insert: {
+          completed?: boolean | null
+          created_at?: string
+          duration_seconds?: number | null
+          from_room_id: string
+          id?: string
+          is_accessible_route?: boolean | null
+          to_room_id: string
+          user_id?: string | null
+        }
+        Update: {
+          completed?: boolean | null
+          created_at?: string
+          duration_seconds?: number | null
+          from_room_id?: string
+          id?: string
+          is_accessible_route?: boolean | null
+          to_room_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "navigation_logs_from_room_id_fkey"
+            columns: ["from_room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "navigation_logs_to_room_id_fkey"
+            columns: ["to_room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      qr_locations: {
+        Row: {
+          floor_id: string
+          id: string
+          label: string | null
+          qr_code_data: string
+          room_id: string
+        }
+        Insert: {
+          floor_id: string
+          id?: string
+          label?: string | null
+          qr_code_data: string
+          room_id: string
+        }
+        Update: {
+          floor_id?: string
+          id?: string
+          label?: string | null
+          qr_code_data?: string
+          room_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qr_locations_floor_id_fkey"
+            columns: ["floor_id"]
+            isOneToOne: false
+            referencedRelation: "floors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qr_locations_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reviews: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          rating: number
+          route_from: string
+          route_to: string
+          user_id: string | null
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating: number
+          route_from: string
+          route_to: string
+          user_id?: string | null
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating?: number
+          route_from?: string
+          route_to?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_route_from_fkey"
+            columns: ["route_from"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_route_to_fkey"
+            columns: ["route_to"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rooms: {
+        Row: {
+          description: string | null
+          floor_id: string
+          id: string
+          is_accessible: boolean | null
+          name: string
+          type: Database["public"]["Enums"]["room_type"]
+          x_coord: number | null
+          y_coord: number | null
+        }
+        Insert: {
+          description?: string | null
+          floor_id: string
+          id?: string
+          is_accessible?: boolean | null
+          name: string
+          type: Database["public"]["Enums"]["room_type"]
+          x_coord?: number | null
+          y_coord?: number | null
+        }
+        Update: {
+          description?: string | null
+          floor_id?: string
+          id?: string
+          is_accessible?: boolean | null
+          name?: string
+          type?: Database["public"]["Enums"]["room_type"]
+          x_coord?: number | null
+          y_coord?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rooms_floor_id_fkey"
+            columns: ["floor_id"]
+            isOneToOne: false
+            referencedRelation: "floors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_favorites: {
+        Row: {
+          created_at: string
+          custom_label: string | null
+          id: string
+          room_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          custom_label?: string | null
+          id?: string
+          room_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          custom_label?: string | null
+          id?: string
+          room_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_favorites_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_recent: {
+        Row: {
+          id: string
+          navigated_at: string
+          room_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          navigated_at?: string
+          room_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          navigated_at?: string
+          room_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_recent_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +309,13 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      room_type:
+        | "aula"
+        | "ufficio"
+        | "bagno"
+        | "ascensore"
+        | "uscita_sicurezza"
+        | "passaggio_disabili"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +442,15 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      room_type: [
+        "aula",
+        "ufficio",
+        "bagno",
+        "ascensore",
+        "uscita_sicurezza",
+        "passaggio_disabili",
+      ],
+    },
   },
 } as const
