@@ -248,19 +248,26 @@ export default function NavigationFlow({ pin, onClose }: NavigationFlowProps) {
             <Button variant="outline" size="icon" onClick={goPrev} disabled={currentStep === 0}>
               <ChevronLeft className="h-5 w-5" />
             </Button>
-            {currentStep < steps.length - 1 ? (
-              <Button className="flex-1 gap-1" onClick={goNext}>
-                Next step <ChevronRight className="h-4 w-4" />
-              </Button>
-            ) : (
-              <Button className="flex-1 gap-1 bg-[hsl(var(--nexora-success))] hover:bg-[hsl(var(--nexora-success))]/90 text-primary-foreground" onClick={handleArrive}>
-                I arrived! ✅
-              </Button>
-            )}
-            <Button variant="outline" size="icon" onClick={goNext} disabled={currentStep >= steps.length - 1}>
+            <Button
+              className="flex-1 gap-1"
+              onClick={currentStep < steps.length - 1 ? goNext : handleArrive}
+            >
+              {currentStep < steps.length - 1 ? (
+                <>Next step <ChevronRight className="h-4 w-4" /></>
+              ) : (
+                <>Next step <ChevronRight className="h-4 w-4" /></>
+              )}
+            </Button>
+            <Button variant="outline" size="icon" onClick={currentStep < steps.length - 1 ? goNext : handleArrive}>
               <ChevronRight className="h-5 w-5" />
             </Button>
           </div>
+          <Button
+            className="mt-3 w-full gap-2 bg-[hsl(142,71%,45%)] hover:bg-[hsl(142,71%,40%)] text-primary-foreground"
+            onClick={handleArrive}
+          >
+            I arrived! ✅
+          </Button>
         </div>
       </div>
     );
