@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { ChevronDown, ChevronUp, Accessibility, Navigation, Star } from "lucide-react";
+import { ChevronDown, ChevronUp, Accessibility, Navigation, Star, X } from "lucide-react";
+import NavigationFlow from "@/components/NavigationFlow";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -89,6 +90,7 @@ const MapScreen = () => {
   const [legendOpen, setLegendOpen] = useState(false);
   const [selectedPin, setSelectedPin] = useState<MapPin | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [navigatingPin, setNavigatingPin] = useState<MapPin | null>(null);
 
   /* ── Initialise map ──────────────────────────────────────────── */
   useEffect(() => {
@@ -270,7 +272,13 @@ const MapScreen = () => {
               </DrawerHeader>
 
               <div className="flex gap-3 px-4 pb-6 pt-2">
-                <Button className="flex-1 gap-2">
+                <Button
+                  className="flex-1 gap-2"
+                  onClick={() => {
+                    setDrawerOpen(false);
+                    setNavigatingPin(selectedPin);
+                  }}
+                >
                   <Navigation className="h-4 w-4" />
                   Navigate here
                 </Button>
@@ -283,6 +291,14 @@ const MapScreen = () => {
           )}
         </DrawerContent>
       </Drawer>
+
+      {/* Navigation flow overlay */}
+      {navigatingPin && (
+        <NavigationFlow
+          pin={navigatingPin}
+          onClose={() => setNavigatingPin(null)}
+        />
+      )}
     </div>
   );
 };
