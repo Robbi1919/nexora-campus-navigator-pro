@@ -272,7 +272,13 @@ const MapScreen = () => {
               </DrawerHeader>
 
               <div className="flex gap-3 px-4 pb-6 pt-2">
-                <Button className="flex-1 gap-2">
+                <Button
+                  className="flex-1 gap-2"
+                  onClick={() => {
+                    setDrawerOpen(false);
+                    setNavigatingPin(selectedPin);
+                  }}
+                >
                   <Navigation className="h-4 w-4" />
                   Navigate here
                 </Button>
