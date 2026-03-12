@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { ChevronDown, ChevronUp, Accessibility, Navigation, Star } from "lucide-react";
+import { ChevronDown, ChevronUp, Accessibility, Navigation, Star, X } from "lucide-react";
+import NavigationFlow from "@/components/NavigationFlow";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
