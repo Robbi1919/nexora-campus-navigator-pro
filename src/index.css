@@ -115,3 +115,18 @@
 .scan-line-animation {
   animation: scan-line 2.5s ease-in-out infinite;
 }
+
+/* html5-qrcode overrides — hide built-in UI */
+#qr-scanner-region > div:first-child {
+  display: none !important;
+}
+#qr-scanner-region video {
+  object-fit: cover !important;
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: var(--radius);
+}
+#qr-scanner-region img[alt="Info icon"],
+#qr-scanner-region #qr-shaded-region {
+  display: none !important;
+}
