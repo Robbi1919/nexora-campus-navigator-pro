@@ -90,6 +90,7 @@ const MapScreen = () => {
   const [legendOpen, setLegendOpen] = useState(false);
   const [selectedPin, setSelectedPin] = useState<MapPin | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [navigatingPin, setNavigatingPin] = useState<MapPin | null>(null);
 
   /* ── Initialise map ──────────────────────────────────────────── */
   useEffect(() => {
