@@ -3,7 +3,7 @@ const ScannerViewfinder = () => {
   const cornerThickness = 4;
 
   return (
-    <div className="relative aspect-square w-64 sm:w-72">
+    <div className="relative w-full h-full">
       {/* Corner brackets */}
       {[
         "top-0 left-0",
