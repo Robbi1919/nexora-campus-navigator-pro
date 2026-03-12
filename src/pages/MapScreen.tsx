@@ -291,6 +291,14 @@ const MapScreen = () => {
           )}
         </DrawerContent>
       </Drawer>
+
+      {/* Navigation flow overlay */}
+      {navigatingPin && (
+        <NavigationFlow
+          pin={navigatingPin}
+          onClose={() => setNavigatingPin(null)}
+        />
+      )}
     </div>
   );
 };
