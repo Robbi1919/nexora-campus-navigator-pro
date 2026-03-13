@@ -97,7 +97,7 @@ export function useSearchRooms(query: string, typeFilter: string | null) {
       q = q.ilike("name", `%${query.trim()}%`);
     }
     if (typeFilter && typeFilter !== "all") {
-      q = q.eq("type", typeFilter);
+      q = q.eq("type", typeFilter as any);
     }
 
     const { data, error: err } = await q;
