@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Search, Camera, ArrowRight, X, Navigation, Star } from "lucide-react";
+import { Search, Camera, ArrowRight, X, Navigation, Star, AlertCircle } from "lucide-react";
 import { Html5Qrcode } from "html5-qrcode";
 import ScannerViewfinder from "@/components/ScannerViewfinder";
 import QuickAccessChips from "@/components/QuickAccessChips";
@@ -16,52 +16,15 @@ import {
 } from "@/components/ui/drawer";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
+import { lookupQrCode, type RoomWithContext } from "@/hooks/use-supabase-data";
 
-/* ── QR code → Room mapping ──────────────────────────────────── */
-
-interface QrRoom {
-  id: string;
-  name: string;
-  type: string;
-  floor: string;
-  building: string;
-  isAccessible: boolean;
-  typeColor: string;
-  typeLabel: string;
-}
-
-const QR_MAP: Record<string, QrRoom> = {
-  NEXORA_EDILF_P1_AULAF3: {
-    id: "1",
-    name: "Aula F3",
-    type: "aula",
-    floor: "P1",
-    building: "Edificio F",
-    isAccessible: false,
-    typeColor: "#2563EB",
-    typeLabel: "Aula",
-  },
-  NEXORA_EDILF_P1_BAGNO: {
-    id: "3",
-    name: "Bagno",
-    type: "bagno",
-    floor: "P1",
-    building: "Edificio F",
-    isAccessible: true,
-    typeColor: "#16A34A",
-    typeLabel: "Bagno",
-  },
-  NEXORA_EDILF_P0_ASCENS: {
-    id: "4",
-    name: "Ascensore",
-    type: "ascensore",
-    floor: "P0",
-    building: "Edificio F",
-    isAccessible: true,
-    typeColor: "#EA580C",
-    typeLabel: "Ascensore",
-  },
-};
+/*
+ * ── SQL seed (kept as reference) ─────────────────────────────────
+ * INSERT INTO qr_locations (qr_code_data, room_id, floor_id) VALUES
+ *   ('NEXORA_EDILF_P1_AULAF3', '<room-uuid>', '<floor-uuid>'),
+ *   ('NEXORA_EDILF_P1_BAGNO', '<room-uuid>', '<floor-uuid>'),
+ *   ('NEXORA_EDILF_P0_ASCENS', '<room-uuid>', '<floor-uuid>');
+ */
 
 /* ── Component ───────────────────────────────────────────────── */
 
@@ -78,8 +41,10 @@ const Index = () => {
   const scanningRef = useRef(false);
 
   // Room bottom sheet
-  const [scannedRoom, setScannedRoom] = useState<QrRoom | null>(null);
+  const [scannedRoom, setScannedRoom] = useState<RoomWithContext | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [qrError, setQrError] = useState<string | null>(null);
+  const [qrLoading, setQrLoading] = useState(false);
 
   // Navigation flow
   const [navigatingPin, setNavigatingPin] = useState<NavPin | null>(null);
@@ -100,7 +65,6 @@ const Index = () => {
   const startScanner = useCallback(async () => {
     if (scanningRef.current) return;
 
-    // Ensure container exists
     const container = document.getElementById(scannerContainerId);
     if (!container) return;
 
@@ -117,15 +81,29 @@ const Index = () => {
           aspectRatio: 1,
           disableFlip: false,
         },
-        (decodedText) => {
-          // On successful scan
-          const room = QR_MAP[decodedText.trim()];
-          if (room) {
-            stopScanner();
-            setScannedRoom(room);
-            setDrawerOpen(true);
-          } else {
-            toast.error("QR code not recognized. Try another.");
+        async (decodedText) => {
+          // Prevent concurrent lookups
+          if (qrLoading) return;
+          setQrLoading(true);
+          setQrError(null);
+
+          stopScanner();
+
+          try {
+            const room = await lookupQrCode(decodedText);
+            if (room) {
+              setScannedRoom(room);
+              setDrawerOpen(true);
+            } else {
+              setQrError("QR code non riconosciuto. Assicurati di scannerizzare un QR Nexora ufficiale.");
+              // Resume scanning after a moment
+              setTimeout(() => startScanner(), 2000);
+            }
+          } catch {
+            setQrError("Errore durante la ricerca. Riprova.");
+            setTimeout(() => startScanner(), 2000);
+          } finally {
+            setQrLoading(false);
           }
         },
         () => {
@@ -142,12 +120,11 @@ const Index = () => {
         console.error("Scanner error:", err);
       }
     }
-  }, [stopScanner]);
+  }, [stopScanner, qrLoading]);
 
   // Auto-start on tab focus, stop on leave
   useEffect(() => {
     if (isScannerTab && !drawerOpen && !navigatingPin) {
-      // Small delay to ensure DOM is ready
       const timer = setTimeout(() => startScanner(), 300);
       return () => {
         clearTimeout(timer);
@@ -160,9 +137,7 @@ const Index = () => {
 
   // Cleanup on unmount
   useEffect(() => {
-    return () => {
-      stopScanner();
-    };
+    return () => { stopScanner(); };
   }, [stopScanner]);
 
   /* ── Handlers ──────────────────────────────────────────────── */
@@ -185,17 +160,21 @@ const Index = () => {
       id: scannedRoom.id,
       name: scannedRoom.name,
       type: scannedRoom.type,
-      floor: scannedRoom.floor,
-      isAccessible: scannedRoom.isAccessible,
+      floor: scannedRoom.floor_name ?? `P${scannedRoom.floor_number}`,
+      isAccessible: scannedRoom.is_accessible ?? false,
     });
   };
 
   const handleDrawerClose = (open: boolean) => {
     setDrawerOpen(open);
     if (!open) {
-      // Resume scanning after closing drawer
       setTimeout(() => startScanner(), 300);
     }
+  };
+
+  const handleRetryQr = () => {
+    setQrError(null);
+    startScanner();
   };
 
   /* ── Render ────────────────────────────────────────────────── */
@@ -222,11 +201,11 @@ const Index = () => {
             <Search className="absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
             <input
               type="text"
-              placeholder="Search room, office, building..."
+              placeholder="Cerca aula, ufficio, edificio..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="h-12 w-full rounded-xl border border-border bg-card pl-11 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-              aria-label="Search rooms and buildings"
+              aria-label="Cerca aule ed edifici"
             />
           </div>
         </form>
@@ -234,35 +213,27 @@ const Index = () => {
 
       {/* Scanner Area */}
       <div className="relative flex flex-1 flex-col items-center justify-center gap-4 px-5">
-        {/* Camera feed — html5-qrcode renders video here */}
         <div className="relative w-64 sm:w-72 aspect-square overflow-hidden rounded-2xl">
-          {/* The scanner renders into this div */}
           <div
             id={scannerContainerId}
             className="absolute inset-0 [&>video]:object-cover [&>video]:w-full [&>video]:h-full"
             style={{ width: "100%", height: "100%" }}
           />
 
-          {/* Corner bracket overlay on top of camera */}
           <div className="pointer-events-none absolute inset-0 z-10">
             <ScannerViewfinder />
           </div>
 
-          {/* Permission denied overlay */}
+          {/* Permission denied */}
           {cameraState === "denied" && (
             <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-card/95 rounded-2xl">
               <Camera className="h-12 w-12 text-muted-foreground" />
-              <p className="text-sm font-medium text-foreground">Camera access required</p>
+              <p className="text-sm font-medium text-foreground">Accesso fotocamera necessario</p>
               <p className="text-xs text-muted-foreground text-center px-4">
-                Allow camera access to scan QR codes
+                Consenti l'accesso alla fotocamera per scansionare i QR code
               </p>
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-1"
-                onClick={() => navigate("/search")}
-              >
-                Search manually instead <ArrowRight className="h-3 w-3" />
+              <Button variant="outline" size="sm" className="gap-1" onClick={() => navigate("/search")}>
+                Cerca manualmente <ArrowRight className="h-3 w-3" />
               </Button>
             </div>
           )}
@@ -272,30 +243,51 @@ const Index = () => {
             <div className="absolute inset-0 z-20 flex items-center justify-center bg-card/80 rounded-2xl">
               <div className="flex flex-col items-center gap-2">
                 <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                <p className="text-xs text-muted-foreground">Starting camera...</p>
+                <p className="text-xs text-muted-foreground">Avvio fotocamera...</p>
+              </div>
+            </div>
+          )}
+
+          {/* QR lookup loading */}
+          {qrLoading && (
+            <div className="absolute inset-0 z-20 flex items-center justify-center bg-card/80 rounded-2xl">
+              <div className="flex flex-col items-center gap-2">
+                <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                <p className="text-xs text-muted-foreground">Ricerca stanza...</p>
               </div>
             </div>
           )}
         </div>
 
+        {/* QR error message */}
+        {qrError && (
+          <div className="flex flex-col items-center gap-2 rounded-xl border border-destructive/50 bg-destructive/10 px-4 py-3 text-center">
+            <AlertCircle className="h-5 w-5 text-destructive" />
+            <p className="text-xs text-destructive font-medium">{qrError}</p>
+            <Button variant="outline" size="sm" onClick={handleRetryQr}>Riprova</Button>
+          </div>
+        )}
+
         {/* Instructions */}
-        <div className="text-center">
-          <p className="text-sm font-medium text-foreground">Point at a QR code</p>
-          <p className="text-xs text-muted-foreground">Find QR codes on walls and doors around campus</p>
-        </div>
+        {!qrError && (
+          <div className="text-center">
+            <p className="text-sm font-medium text-foreground">Inquadra un QR code</p>
+            <p className="text-xs text-muted-foreground">Trova i QR code su pareti e porte del campus</p>
+          </div>
+        )}
 
         {/* Manual search fallback */}
         <button
           onClick={() => navigate("/search")}
           className="flex items-center gap-1 text-sm font-medium text-primary hover:underline"
         >
-          Search manually <ArrowRight className="h-4 w-4" />
+          Cerca manualmente <ArrowRight className="h-4 w-4" />
         </button>
       </div>
 
       {/* Quick Access */}
       <div className="relative z-30 px-5 pb-4">
-        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Quick Access</p>
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Accesso rapido</p>
         <QuickAccessChips onChipClick={handleChipClick} />
       </div>
 
@@ -314,25 +306,14 @@ const Index = () => {
               </div>
               <DrawerHeader className="text-left">
                 <DrawerTitle className="flex items-center gap-2">
-                  {scannedRoom.name}
-                  {scannedRoom.isAccessible && (
-                    <Badge variant="secondary" className="text-xs">
-                      ♿ Accessible
-                    </Badge>
+                  📍 Sei in: {scannedRoom.name}
+                  {scannedRoom.is_accessible && (
+                    <Badge variant="secondary" className="text-xs">♿ Accessibile</Badge>
                   )}
                 </DrawerTitle>
                 <DrawerDescription className="flex flex-wrap items-center gap-2 pt-1">
-                  <Badge
-                    variant="outline"
-                    style={{
-                      borderColor: scannedRoom.typeColor,
-                      color: scannedRoom.typeColor,
-                    }}
-                  >
-                    {scannedRoom.typeLabel}
-                  </Badge>
                   <span className="text-xs text-muted-foreground">
-                    {scannedRoom.building} · Floor {scannedRoom.floor}
+                    {scannedRoom.building_name} · {scannedRoom.floor_name ?? `P${scannedRoom.floor_number}`}
                   </span>
                 </DrawerDescription>
               </DrawerHeader>
@@ -340,11 +321,11 @@ const Index = () => {
               <div className="flex flex-col gap-3 px-4 pb-6 pt-2">
                 <Button className="w-full gap-2" onClick={handleNavigate}>
                   <Navigation className="h-4 w-4" />
-                  Navigate here
+                  Naviga da qui
                 </Button>
                 <Button variant="outline" className="w-full gap-2">
                   <Star className="h-4 w-4" />
-                  Save to favorites
+                  Salva nei preferiti
                 </Button>
               </div>
             </>
