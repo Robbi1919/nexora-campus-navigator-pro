@@ -288,108 +288,115 @@ const SearchScreen = () => {
 
       {/* ── Bottom sheet ───────────────────────────────────────── */}
       <Drawer open={sheetOpen} onOpenChange={setSheetOpen}>
-        <DrawerContent className="max-h-[85dvh] overflow-y-auto">
+        <DrawerContent className="max-h-[85dvh]">
           {selectedLocation && (
-            <div className="pb-6">
-              {/* Close button */}
-              <div className="absolute right-4 top-4 z-10">
-                <button onClick={() => setSheetOpen(false)} className="rounded-full p-1 hover:bg-accent">
-                  <X className="h-5 w-5 text-muted-foreground" />
-                </button>
+            <>
+              {/* Scrollable content area */}
+              <div className="overflow-y-auto">
+                <div className="pb-4">
+                  {/* Close button */}
+                  <div className="absolute right-4 top-4 z-10">
+                    <button onClick={() => setSheetOpen(false)} className="rounded-full p-1 hover:bg-accent">
+                      <X className="h-5 w-5 text-muted-foreground" />
+                    </button>
+                  </div>
+
+                  {/* Image */}
+                  {TYPE_IMAGES[selectedLocation.type] ? (
+                    <div className="aspect-video w-full overflow-hidden">
+                      <img
+                        src={TYPE_IMAGES[selectedLocation.type]}
+                        alt={selectedLocation.name}
+                        className="h-full w-full object-cover"
+                        loading="lazy"
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex aspect-video w-full items-center justify-center bg-muted">
+                      <TypeIcon type={selectedLocation.type} size="md" />
+                    </div>
+                  )}
+
+                  {/* Info */}
+                  <div className="px-4 pt-4">
+                    <h3 className="text-xl font-bold text-foreground">{selectedLocation.name}</h3>
+                    <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                      <Badge
+                        variant="outline"
+                        style={{
+                          borderColor: TYPE_CONFIG[selectedLocation.type].color,
+                          color: TYPE_CONFIG[selectedLocation.type].color,
+                        }}
+                      >
+                        {TYPE_CONFIG[selectedLocation.type].label}
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">
+                        {selectedLocation.floor !== "Campus" && selectedLocation.floor !== "Esterno"
+                          ? `Floor ${selectedLocation.floor}`
+                          : selectedLocation.floor}
+                        {" · "}
+                        {selectedLocation.building}
+                      </span>
+                    </div>
+                    <p className="mt-3 text-sm text-muted-foreground">{selectedLocation.description}</p>
+
+                    {/* Accessibility row */}
+                    <div className="mt-3 flex items-center gap-2 text-sm">
+                      <Accessibility className="h-4 w-4 text-primary" />
+                      <span className="text-foreground">
+                        Accessible: {selectedLocation.isAccessible ? "Yes ♿" : "No"}
+                      </span>
+                    </div>
+
+                    {/* Nearby parking - shown for ALL types (even parcheggio shows others) */}
+                    {nearbyParking.length > 0 && (
+                      <div className="mt-5">
+                        <p className="mb-2 text-sm font-semibold text-foreground">🅿️ Nearby Parking</p>
+                        <div className="flex flex-col gap-2">
+                          {nearbyParking.map((p) => {
+                            const parkingLoc = LOCATIONS.find((l) => l.id === p.id);
+                            return (
+                              <div
+                                key={p.id}
+                                className="flex items-center justify-between rounded-lg border border-border bg-muted/50 px-3 py-2"
+                              >
+                                <div className="flex items-center gap-2">
+                                  <TypeIcon type="parcheggio" size="sm" />
+                                  <div>
+                                    <p className="text-xs font-semibold text-foreground">{p.name}</p>
+                                    <p className="text-[10px] text-muted-foreground">{p.distance}</p>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                  {parkingLoc?.isAccessible && <span className="text-xs">♿</span>}
+                                  <button
+                                    onClick={() => handleGoParking(p.id)}
+                                    className="text-xs font-semibold text-primary hover:underline"
+                                  >
+                                    Directions
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
 
-              {/* Image */}
-              {TYPE_IMAGES[selectedLocation.type] ? (
-                <div className="aspect-video w-full overflow-hidden">
-                  <img
-                    src={TYPE_IMAGES[selectedLocation.type]}
-                    alt={selectedLocation.name}
-                    className="h-full w-full object-cover"
-                    loading="lazy"
-                  />
-                </div>
-              ) : (
-                <div className="flex aspect-video w-full items-center justify-center bg-muted">
-                  <TypeIcon type={selectedLocation.type} size="md" />
-                </div>
-              )}
-
-              {/* Info */}
-              <div className="px-4 pt-4">
-                <h3 className="text-xl font-bold text-foreground">{selectedLocation.name}</h3>
-                <div className="mt-1.5 flex flex-wrap items-center gap-2">
-                  <Badge
-                    variant="outline"
-                    style={{
-                      borderColor: TYPE_CONFIG[selectedLocation.type].color,
-                      color: TYPE_CONFIG[selectedLocation.type].color,
-                    }}
-                  >
-                    {TYPE_CONFIG[selectedLocation.type].label}
-                  </Badge>
-                  <span className="text-xs text-muted-foreground">
-                    {selectedLocation.floor !== "Campus" && selectedLocation.floor !== "Esterno"
-                      ? `Floor ${selectedLocation.floor}`
-                      : selectedLocation.floor}
-                    {" · "}
-                    {selectedLocation.building}
-                  </span>
-                </div>
-                <p className="mt-3 text-sm text-muted-foreground">{selectedLocation.description}</p>
-
-                {/* Accessibility row */}
-                <div className="mt-3 flex items-center gap-2 text-sm">
-                  <Accessibility className="h-4 w-4 text-primary" />
-                  <span className="text-foreground">
-                    Accessible: {selectedLocation.isAccessible ? "Yes ♿" : "No"}
-                  </span>
-                </div>
-
-                {/* Nearby parking */}
-                {nearbyParking.length > 0 && selectedLocation.type !== "parcheggio" && (
-                  <div className="mt-5">
-                    <p className="mb-2 text-sm font-semibold text-foreground">🅿️ Nearby Parking</p>
-                    <div className="flex flex-col gap-2">
-                      {nearbyParking.map((p) => {
-                        const parkingLoc = LOCATIONS.find((l) => l.id === p.id);
-                        return (
-                          <div
-                            key={p.id}
-                            className="flex items-center justify-between rounded-lg border border-border bg-muted/50 px-3 py-2"
-                          >
-                            <div className="flex items-center gap-2">
-                              <TypeIcon type="parcheggio" size="sm" />
-                              <div>
-                                <p className="text-xs font-semibold text-foreground">{p.name}</p>
-                                <p className="text-[10px] text-muted-foreground">{p.distance}</p>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                              {parkingLoc?.isAccessible && <span className="text-xs">♿</span>}
-                              <button
-                                onClick={() => handleGoParking(p.id)}
-                                className="text-xs font-semibold text-primary hover:underline"
-                              >
-                                Directions
-                              </button>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {/* GO button */}
+              {/* Fixed footer with GO button - always visible */}
+              <div className="border-t border-border bg-background p-4">
                 <Button
-                  className="mt-5 w-full gap-2 text-base font-bold"
+                  className="w-full gap-2 text-base font-bold"
                   style={{ backgroundColor: "hsl(224, 76%, 40%)" }}
                   onClick={() => handleGo(selectedLocation)}
                 >
                   GO <ArrowRight className="h-5 w-5" />
                 </Button>
               </div>
-            </div>
+            </>
           )}
         </DrawerContent>
       </Drawer>
