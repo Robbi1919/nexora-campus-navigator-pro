@@ -334,10 +334,6 @@ const Index = () => {
         </DrawerContent>
       </Drawer>
 
-      {/* Navigation flow overlay */}
-      {navigatingPin && <NavigationFlow pin={navigatingPin} onClose={() => setNavigatingPin(null)} />}
-    </div>
-  );
-};
+     
 
 export default Index;
