@@ -7,13 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerDescription,
-} from "@/components/ui/drawer";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from "@/components/ui/drawer";
 import { useFloors, useRoomsByFloor, type RoomRow, type FloorRow } from "@/hooks/use-supabase-data";
 
 /*
@@ -96,7 +90,12 @@ const MapScreen = () => {
   }, [floors, activeFloorId]);
 
   // Fetch rooms for active floor
-  const { rooms, loading: roomsLoading, error: roomsError, refetch: refetchRooms } = useRoomsByFloor(activeFloorId, accessibleOnly);
+  const {
+    rooms,
+    loading: roomsLoading,
+    error: roomsError,
+    refetch: refetchRooms,
+  } = useRoomsByFloor(activeFloorId, accessibleOnly);
 
   const activeFloor = floors.find((f) => f.id === activeFloorId);
 
@@ -144,7 +143,7 @@ const MapScreen = () => {
       });
 
       const marker = new mapboxgl.Marker({ element: el })
-        .setLngLat([room.y_coord, room.x_coord]) // y=lng, x=lat
+        .setLngLat([room.x_coord, room.y_coord]) // x=lng, y=lat
         .addTo(map);
 
       markersRef.current.push(marker);
@@ -157,7 +156,9 @@ const MapScreen = () => {
     if (map.loaded()) renderMarkers();
     else {
       map.on("load", renderMarkers);
-      return () => { map.off("load", renderMarkers); };
+      return () => {
+        map.off("load", renderMarkers);
+      };
     }
   }, [renderMarkers]);
 
@@ -171,7 +172,8 @@ const MapScreen = () => {
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-muted/90 px-6 text-center">
           <p className="text-lg font-semibold text-foreground">Mapbox token mancante</p>
           <p className="text-sm text-muted-foreground">
-            Imposta <code className="rounded bg-secondary px-1 py-0.5 text-xs font-mono">VITE_MAPBOX_TOKEN</code> per abilitare la mappa.
+            Imposta <code className="rounded bg-secondary px-1 py-0.5 text-xs font-mono">VITE_MAPBOX_TOKEN</code> per
+            abilitare la mappa.
           </p>
         </div>
       )}
@@ -182,7 +184,14 @@ const MapScreen = () => {
           <div className="flex items-center gap-2 rounded-xl border border-destructive bg-background px-4 py-2 shadow-lg">
             <AlertCircle className="h-4 w-4 text-destructive" />
             <span className="text-xs text-destructive">Errore nel caricamento</span>
-            <Button variant="outline" size="sm" onClick={() => { refetchFloors(); refetchRooms(); }}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                refetchFloors();
+                refetchRooms();
+              }}
+            >
               Riprova
             </Button>
           </div>
@@ -200,9 +209,7 @@ const MapScreen = () => {
                 key={f.id}
                 onClick={() => setActiveFloorId(f.id)}
                 className={`min-w-[3rem] px-3 py-2 text-xs font-semibold transition-colors ${
-                  activeFloorId === f.id
-                    ? "bg-primary text-primary-foreground"
-                    : "text-foreground hover:bg-accent"
+                  activeFloorId === f.id ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-accent"
                 }`}
               >
                 {f.name ?? `P${f.floor_number}`}
@@ -239,7 +246,11 @@ const MapScreen = () => {
             className="flex w-full items-center justify-between gap-2 px-3 py-2 text-xs font-semibold text-foreground"
           >
             Legenda
-            {legendOpen ? <ChevronDown className="h-3 w-3 text-muted-foreground" /> : <ChevronUp className="h-3 w-3 text-muted-foreground" />}
+            {legendOpen ? (
+              <ChevronDown className="h-3 w-3 text-muted-foreground" />
+            ) : (
+              <ChevronUp className="h-3 w-3 text-muted-foreground" />
+            )}
           </button>
           {legendOpen && (
             <div className="flex flex-col gap-1.5 px-3 pb-3">
@@ -263,7 +274,9 @@ const MapScreen = () => {
                 <DrawerTitle className="flex items-center gap-2">
                   {selectedRoom.name}
                   {selectedRoom.is_accessible && (
-                    <Badge variant="secondary" className="text-xs">♿ Accessibile</Badge>
+                    <Badge variant="secondary" className="text-xs">
+                      ♿ Accessibile
+                    </Badge>
                   )}
                 </DrawerTitle>
                 <DrawerDescription className="flex flex-wrap items-center gap-2 pt-1">
