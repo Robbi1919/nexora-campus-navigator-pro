@@ -393,7 +393,7 @@ const SearchScreen = () => {
       {navigatingPin && (
         <NavigationFlow
           pin={navigatingPin}
-          fromPin={departureTarget ?? undefined}
+          fromPin={departureTarget ? { id: departureTarget.id, name: departureTarget.name, type: departureTarget.type, floor: departureTarget.floor_name ?? `P${departureTarget.floor_number}`, isAccessible: departureTarget.is_accessible ?? false } : undefined}
           onClose={() => setNavigatingPin(null)}
         />
       )}
