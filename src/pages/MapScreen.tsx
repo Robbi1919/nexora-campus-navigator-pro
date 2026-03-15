@@ -103,7 +103,9 @@ const MapScreen = () => {
   useEffect(() => {
     if (!mapContainer.current || mapRef.current) return;
 
-    const token = import.meta.env.VITE_MAPBOX_TOKEN;
+    const token =
+      import.meta.env.VITE_MAPBOX_TOKEN ||
+      "pk.eyJ1Ijoicm9iYmltb3JlbmEwODkiLCJhIjoiY21iODh2cWNuMGlybDJpc2VhOTZmMnluNSJ9.1Fjzu6X1PgXD0dlpDJy-PQ";
     if (!token) return;
     mapboxgl.accessToken = token;
 
