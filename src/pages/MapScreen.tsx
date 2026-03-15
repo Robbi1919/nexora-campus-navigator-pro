@@ -169,16 +169,6 @@ const MapScreen = () => {
     <div className="relative h-[100dvh] w-full pb-[var(--nav-height)]">
       <div ref={mapContainer} className="absolute inset-0" />
 
-      {/* No-token fallback */}
-      {!token && (
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-muted/90 px-6 text-center">
-          <p className="text-lg font-semibold text-foreground">Mapbox token mancante</p>
-          <p className="text-sm text-muted-foreground">
-            Imposta <code className="rounded bg-secondary px-1 py-0.5 text-xs font-mono">VITE_MAPBOX_TOKEN</code> per
-            abilitare la mappa.
-          </p>
-        </div>
-      )}
 
       {/* Error state */}
       {(floorsError || roomsError) && (
