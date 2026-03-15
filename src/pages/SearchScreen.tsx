@@ -14,10 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Drawer,
-  DrawerContent,
-} from "@/components/ui/drawer";
+import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import NavigationFlow, { type NavPin } from "@/components/NavigationFlow";
 import { useNavigate } from "react-router-dom";
 import { useSearchRooms, type RoomWithContext } from "@/hooks/use-supabase-data";
@@ -203,14 +200,18 @@ const SearchScreen = () => {
             <AlertCircle className="mb-3 h-10 w-10 text-destructive" />
             <p className="text-sm font-medium text-foreground">Errore nel caricamento</p>
             <p className="text-xs text-muted-foreground mb-3">{error}</p>
-            <Button variant="outline" size="sm" onClick={refetch}>Riprova</Button>
+            <Button variant="outline" size="sm" onClick={refetch}>
+              Riprova
+            </Button>
           </div>
         )}
 
         {/* Loading skeletons */}
         {loading && (
           <div className="flex flex-col gap-2 pb-4">
-            {Array.from({ length: 6 }).map((_, i) => <CardSkeleton key={i} />)}
+            {Array.from({ length: 6 }).map((_, i) => (
+              <CardSkeleton key={i} />
+            ))}
           </div>
         )}
 
@@ -249,7 +250,11 @@ const SearchScreen = () => {
                     >
                       {cfg.label}
                     </Badge>
-                    {room.is_accessible && <span className="text-sm" title="Accessible">♿</span>}
+                    {room.is_accessible && (
+                      <span className="text-sm" title="Accessible">
+                        ♿
+                      </span>
+                    )}
                   </div>
                 </button>
               );
@@ -318,10 +323,7 @@ const SearchScreen = () => {
               </div>
 
               <div className="border-t border-border bg-background p-4">
-                <Button
-                  className="w-full gap-2 text-base font-bold"
-                  onClick={() => handleGo(selectedRoom)}
-                >
+                <Button className="w-full gap-2 text-base font-bold" onClick={() => handleGo(selectedRoom)}>
                   GO <ArrowRight className="h-5 w-5" />
                 </Button>
               </div>
@@ -366,9 +368,7 @@ const SearchScreen = () => {
                 </div>
                 <div>
                   <p className="text-base font-semibold text-foreground">Scegli dalla mappa</p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    Tocca la tua posizione attuale sulla mappa
-                  </p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">Tocca la tua posizione attuale sulla mappa</p>
                 </div>
               </button>
 
@@ -381,9 +381,7 @@ const SearchScreen = () => {
                 </div>
                 <div>
                   <p className="text-base font-semibold text-foreground">Naviga direttamente</p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    Inizia la navigazione verso la destinazione
-                  </p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">Inizia la navigazione verso la destinazione</p>
                 </div>
               </button>
             </div>
@@ -395,6 +393,7 @@ const SearchScreen = () => {
       {navigatingPin && (
         <NavigationFlow
           pin={navigatingPin}
+          fromPin={departureTarget ?? undefined}
           onClose={() => setNavigatingPin(null)}
         />
       )}
