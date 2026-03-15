@@ -7,13 +7,7 @@ import OnboardingOverlay from "@/components/OnboardingOverlay";
 import NavigationFlow, { type NavPin } from "@/components/NavigationFlow";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerDescription,
-} from "@/components/ui/drawer";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from "@/components/ui/drawer";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { lookupQrCode, type RoomWithContext } from "@/hooks/use-supabase-data";
@@ -108,7 +102,7 @@ const Index = () => {
         },
         () => {
           // ignore scan failures (no QR in frame)
-        }
+        },
       );
       scanningRef.current = true;
       setCameraState("active");
@@ -137,7 +131,9 @@ const Index = () => {
 
   // Cleanup on unmount
   useEffect(() => {
-    return () => { stopScanner(); };
+    return () => {
+      stopScanner();
+    };
   }, [stopScanner]);
 
   /* ── Handlers ──────────────────────────────────────────────── */
@@ -156,12 +152,16 @@ const Index = () => {
   const handleNavigate = () => {
     if (!scannedRoom) return;
     setDrawerOpen(false);
-    setNavigatingPin({
-      id: scannedRoom.id,
-      name: scannedRoom.name,
-      type: scannedRoom.type,
-      floor: scannedRoom.floor_name ?? `P${scannedRoom.floor_number}`,
-      isAccessible: scannedRoom.is_accessible ?? false,
+    navigate("/search", {
+      state: {
+        fromPin: {
+          id: scannedRoom.id,
+          name: scannedRoom.name,
+          type: scannedRoom.type,
+          floor: scannedRoom.floor_name ?? `P${scannedRoom.floor_number}`,
+          isAccessible: scannedRoom.is_accessible ?? false,
+        },
+      },
     });
   };
 
@@ -264,7 +264,9 @@ const Index = () => {
           <div className="flex flex-col items-center gap-2 rounded-xl border border-destructive/50 bg-destructive/10 px-4 py-3 text-center">
             <AlertCircle className="h-5 w-5 text-destructive" />
             <p className="text-xs text-destructive font-medium">{qrError}</p>
-            <Button variant="outline" size="sm" onClick={handleRetryQr}>Riprova</Button>
+            <Button variant="outline" size="sm" onClick={handleRetryQr}>
+              Riprova
+            </Button>
           </div>
         )}
 
@@ -297,10 +299,7 @@ const Index = () => {
           {scannedRoom && (
             <>
               <div className="absolute right-4 top-4 z-10">
-                <button
-                  onClick={() => handleDrawerClose(false)}
-                  className="rounded-full p-1 hover:bg-accent"
-                >
+                <button onClick={() => handleDrawerClose(false)} className="rounded-full p-1 hover:bg-accent">
                   <X className="h-5 w-5 text-muted-foreground" />
                 </button>
               </div>
@@ -308,7 +307,9 @@ const Index = () => {
                 <DrawerTitle className="flex items-center gap-2">
                   📍 Sei in: {scannedRoom.name}
                   {scannedRoom.is_accessible && (
-                    <Badge variant="secondary" className="text-xs">♿ Accessibile</Badge>
+                    <Badge variant="secondary" className="text-xs">
+                      ♿ Accessibile
+                    </Badge>
                   )}
                 </DrawerTitle>
                 <DrawerDescription className="flex flex-wrap items-center gap-2 pt-1">
@@ -334,12 +335,7 @@ const Index = () => {
       </Drawer>
 
       {/* Navigation flow overlay */}
-      {navigatingPin && (
-        <NavigationFlow
-          pin={navigatingPin}
-          onClose={() => setNavigatingPin(null)}
-        />
-      )}
+      {navigatingPin && <NavigationFlow pin={navigatingPin} onClose={() => setNavigatingPin(null)} />}
     </div>
   );
 };
