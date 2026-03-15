@@ -334,6 +334,8 @@ const Index = () => {
         </DrawerContent>
       </Drawer>
 
-     
+    </div>
+  );
+};
 
 export default Index;
