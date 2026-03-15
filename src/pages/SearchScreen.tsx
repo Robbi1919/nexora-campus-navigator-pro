@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import NavigationFlow, { type NavPin } from "@/components/NavigationFlow";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useSearchRooms, type RoomWithContext } from "@/hooks/use-supabase-data";
 
 /*
@@ -84,6 +84,8 @@ function CardSkeleton() {
 
 const SearchScreen = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const scannedFromPin = location.state?.fromPin as NavPin | undefined;
   const [query, setQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<string>("all");
 
@@ -100,6 +102,7 @@ const SearchScreen = () => {
 
   // Navigation flow
   const [navigatingPin, setNavigatingPin] = useState<NavPin | null>(null);
+  const [currentFromPin, setCurrentFromPin] = useState<NavPin | undefined>(scannedFromPin);
 
   // Infinite scroll ref
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -136,8 +139,9 @@ const SearchScreen = () => {
     navigate("/map");
   };
 
-  const startNav = (target: RoomWithContext) => {
+  const startNav = (target: RoomWithContext, from?: NavPin) => {
     setDepartureOpen(false);
+    setCurrentFromPin(from ?? scannedFromPin);
     setNavigatingPin({
       id: target.id,
       name: target.name,
@@ -393,8 +397,11 @@ const SearchScreen = () => {
       {navigatingPin && (
         <NavigationFlow
           pin={navigatingPin}
-          fromPin={departureTarget ? { id: departureTarget.id, name: departureTarget.name, type: departureTarget.type, floor: departureTarget.floor_name ?? `P${departureTarget.floor_number}`, isAccessible: departureTarget.is_accessible ?? false } : undefined}
-          onClose={() => setNavigatingPin(null)}
+          fromPin={currentFromPin}
+          onClose={() => {
+            setNavigatingPin(null);
+            setCurrentFromPin(undefined);
+          }}
         />
       )}
     </div>
