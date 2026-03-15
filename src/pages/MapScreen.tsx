@@ -170,7 +170,7 @@ const MapScreen = () => {
       <div ref={mapContainer} className="absolute inset-0" />
 
       {/* No-token fallback */}
-      {!import.meta.env.VITE_MAPBOX_TOKEN && (
+      {!token && (
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-muted/90 px-6 text-center">
           <p className="text-lg font-semibold text-foreground">Mapbox token mancante</p>
           <p className="text-sm text-muted-foreground">
