@@ -56,10 +56,11 @@ function StepIcon({ type }: { type: NavStep["icon"] }) {
 
 interface NavigationFlowProps {
   pin: NavPin;
+  fromPin?: NavPin;
   onClose: () => void;
 }
 
-export default function NavigationFlow({ pin, onClose }: NavigationFlowProps) {
+export default function NavigationFlow({ pin, fromPin, onClose }: NavigationFlowProps) {
   const [phase, setPhase] = useState<FlowPhase>("accessibility-modal");
   const [accessibleRoute, setAccessibleRoute] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
@@ -96,11 +97,13 @@ export default function NavigationFlow({ pin, onClose }: NavigationFlowProps) {
     setSubmitting(true);
     try {
       const durationSeconds = Math.round((Date.now() - startTime) / 1000);
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
       // Insert navigation log
       await supabase.from("navigation_logs").insert({
-        from_room_id: pin.id,
+        from_room_id: fromPin?.id ?? null,
         to_room_id: pin.id,
         user_id: user?.id ?? null,
         completed: true,
@@ -161,9 +164,7 @@ export default function NavigationFlow({ pin, onClose }: NavigationFlowProps) {
             </button>
           </div>
           <h2 className="mt-2 text-xl font-bold text-foreground">Do you need accessible navigation?</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            We'll use elevators, ramps and wide passages
-          </p>
+          <p className="mt-1 text-sm text-muted-foreground">We'll use elevators, ramps and wide passages</p>
           <div className="mt-6 flex gap-3">
             <Button
               className="flex-1 gap-1"
@@ -200,9 +201,7 @@ export default function NavigationFlow({ pin, onClose }: NavigationFlowProps) {
           <button onClick={onClose} className="flex items-center gap-1 text-sm font-medium text-primary">
             <ChevronLeft className="h-4 w-4" /> Back
           </button>
-          <span className="flex-1 text-center text-sm font-semibold text-foreground truncate">
-            {pin.name}
-          </span>
+          <span className="flex-1 text-center text-sm font-semibold text-foreground truncate">{pin.name}</span>
           <Badge variant="secondary" className="text-xs">
             {pin.floor}
           </Badge>
@@ -232,7 +231,10 @@ export default function NavigationFlow({ pin, onClose }: NavigationFlowProps) {
             setTouchStartX(null);
           }}
         >
-          <div className="w-full max-w-xs rounded-2xl border border-border bg-card p-8 text-center shadow-lg animate-scale-in" key={currentStep}>
+          <div
+            className="w-full max-w-xs rounded-2xl border border-border bg-card p-8 text-center shadow-lg animate-scale-in"
+            key={currentStep}
+          >
             <StepIcon type={step.icon} />
             <p className="mt-4 text-lg font-semibold text-foreground">{step.instruction}</p>
             <p className="mt-1 text-sm text-muted-foreground">{step.distance}</p>
@@ -248,14 +250,15 @@ export default function NavigationFlow({ pin, onClose }: NavigationFlowProps) {
             <Button variant="outline" size="icon" onClick={goPrev} disabled={currentStep === 0}>
               <ChevronLeft className="h-5 w-5" />
             </Button>
-            <Button
-              className="flex-1 gap-1"
-              onClick={currentStep < steps.length - 1 ? goNext : handleArrive}
-            >
+            <Button className="flex-1 gap-1" onClick={currentStep < steps.length - 1 ? goNext : handleArrive}>
               {currentStep < steps.length - 1 ? (
-                <>Next step <ChevronRight className="h-4 w-4" /></>
+                <>
+                  Next step <ChevronRight className="h-4 w-4" />
+                </>
               ) : (
-                <>Next step <ChevronRight className="h-4 w-4" /></>
+                <>
+                  Next step <ChevronRight className="h-4 w-4" />
+                </>
               )}
             </Button>
             <Button variant="outline" size="icon" onClick={currentStep < steps.length - 1 ? goNext : handleArrive}>
@@ -281,12 +284,8 @@ export default function NavigationFlow({ pin, onClose }: NavigationFlowProps) {
         <span className="text-7xl">✅</span>
       </div>
 
-      <h2 className="text-2xl font-bold text-foreground">
-        You arrived at {pin.name}! 🎉
-      </h2>
-      <p className="mt-1 text-sm text-muted-foreground">
-        Navigation completed in {durationMinutes} min
-      </p>
+      <h2 className="text-2xl font-bold text-foreground">You arrived at {pin.name}! 🎉</h2>
+      <p className="mt-1 text-sm text-muted-foreground">Navigation completed in {durationMinutes} min</p>
 
       {/* Star rating */}
       <div className="mt-6">
