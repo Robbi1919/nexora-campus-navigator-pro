@@ -67,6 +67,106 @@ export type Database = {
           },
         ]
       }
+      graph_edges: {
+        Row: {
+          created_at: string
+          direction_hint: string | null
+          distance_meters: number
+          from_node_id: string
+          id: string
+          is_accessible: boolean
+          to_node_id: string
+        }
+        Insert: {
+          created_at?: string
+          direction_hint?: string | null
+          distance_meters?: number
+          from_node_id: string
+          id?: string
+          is_accessible?: boolean
+          to_node_id: string
+        }
+        Update: {
+          created_at?: string
+          direction_hint?: string | null
+          distance_meters?: number
+          from_node_id?: string
+          id?: string
+          is_accessible?: boolean
+          to_node_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "graph_edges_from_node_id_fkey"
+            columns: ["from_node_id"]
+            isOneToOne: false
+            referencedRelation: "graph_nodes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "graph_edges_to_node_id_fkey"
+            columns: ["to_node_id"]
+            isOneToOne: false
+            referencedRelation: "graph_nodes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      graph_nodes: {
+        Row: {
+          building_id: string
+          created_at: string
+          floor_id: string
+          id: string
+          label: string | null
+          room_id: string | null
+          x_coord: number
+          y_coord: number
+        }
+        Insert: {
+          building_id: string
+          created_at?: string
+          floor_id: string
+          id?: string
+          label?: string | null
+          room_id?: string | null
+          x_coord?: number
+          y_coord?: number
+        }
+        Update: {
+          building_id?: string
+          created_at?: string
+          floor_id?: string
+          id?: string
+          label?: string | null
+          room_id?: string | null
+          x_coord?: number
+          y_coord?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "graph_nodes_building_id_fkey"
+            columns: ["building_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "graph_nodes_floor_id_fkey"
+            columns: ["floor_id"]
+            isOneToOne: false
+            referencedRelation: "floors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "graph_nodes_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       navigation_logs: {
         Row: {
           completed: boolean | null
