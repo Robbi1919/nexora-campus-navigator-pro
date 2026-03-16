@@ -63,8 +63,16 @@ export default function NavigationFlow({ pin, fromPin, onClose }: NavigationFlow
   // Touch swipe
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
 
-  const steps = SAMPLE_STEPS;
-  const progress = phase === "arrived" ? 100 : ((currentStep + 1) / steps.length) * 100;
+  // Graph-based routing
+  const { steps: routeSteps, loading: routeLoading, error: routeError } = useRouting(
+    fromPin?.id ?? null,
+    pin.id,
+    accessibleRoute,
+    phase === "navigating"
+  );
+
+  const steps = routeSteps;
+  const progress = phase === "arrived" ? 100 : steps.length > 0 ? ((currentStep + 1) / steps.length) * 100 : 0;
 
   const goNext = useCallback(() => {
     if (currentStep < steps.length - 1) {
