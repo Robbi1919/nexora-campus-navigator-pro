@@ -1,11 +1,13 @@
 import { useState, useCallback, useEffect } from "react";
-import { ArrowUp, ArrowRight, ArrowLeft, X, Star, ChevronLeft, ChevronRight, Accessibility } from "lucide-react";
+import { ArrowUp, ArrowRight, ArrowLeft, X, Star, ChevronLeft, ChevronRight, Accessibility, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useRouting } from "@/hooks/useRouting";
+import type { NavStep } from "@/lib/routing";
 
 /* ── Types ──────────────────────────────────────────────────────── */
 
@@ -17,20 +19,7 @@ export interface NavPin {
   isAccessible: boolean;
 }
 
-interface NavStep {
-  icon: "up" | "right" | "left" | "elevator" | "exit";
-  instruction: string;
-  distance: string;
-}
-
 type FlowPhase = "accessibility-modal" | "navigating" | "arrived";
-
-const SAMPLE_STEPS: NavStep[] = [
-  { icon: "elevator", instruction: "Exit the elevator on floor P1", distance: "~5m" },
-  { icon: "right", instruction: "Turn right into corridor B", distance: "~15m" },
-  { icon: "up", instruction: "Go straight past the bathrooms", distance: "~20m" },
-  { icon: "right", instruction: "Turn right, Aula F3 is on your right", distance: "~8m" },
-];
 
 /* ── Step icon renderer ─────────────────────────────────────────── */
 
@@ -74,8 +63,16 @@ export default function NavigationFlow({ pin, fromPin, onClose }: NavigationFlow
   // Touch swipe
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
 
-  const steps = SAMPLE_STEPS;
-  const progress = phase === "arrived" ? 100 : ((currentStep + 1) / steps.length) * 100;
+  // Graph-based routing
+  const { steps: routeSteps, loading: routeLoading, error: routeError } = useRouting(
+    fromPin?.id ?? null,
+    pin.id,
+    accessibleRoute,
+    phase === "navigating"
+  );
+
+  const steps = routeSteps;
+  const progress = phase === "arrived" ? 100 : steps.length > 0 ? ((currentStep + 1) / steps.length) * 100 : 0;
 
   const goNext = useCallback(() => {
     if (currentStep < steps.length - 1) {
@@ -193,6 +190,24 @@ export default function NavigationFlow({ pin, fromPin, onClose }: NavigationFlow
 
   /* ── Phase 2: Step-by-step navigation ─────────────────────────── */
   if (phase === "navigating") {
+    if (routeLoading) {
+      return (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background animate-fade-in">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+          <p className="mt-4 text-sm text-muted-foreground">Computing route…</p>
+        </div>
+      );
+    }
+    if (routeError || steps.length === 0) {
+      return (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background px-6 animate-fade-in">
+          <span className="text-5xl mb-4">🚫</span>
+          <h2 className="text-xl font-bold text-foreground">No route found</h2>
+          <p className="mt-2 text-sm text-muted-foreground text-center">{routeError || "Could not compute a route between these locations."}</p>
+          <Button className="mt-6" onClick={onClose}>Back to map</Button>
+        </div>
+      );
+    }
     const step = steps[currentStep];
     return (
       <div className="fixed inset-0 z-50 flex flex-col bg-background animate-fade-in">
