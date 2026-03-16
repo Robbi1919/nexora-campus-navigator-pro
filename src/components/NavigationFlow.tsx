@@ -190,6 +190,24 @@ export default function NavigationFlow({ pin, fromPin, onClose }: NavigationFlow
 
   /* ── Phase 2: Step-by-step navigation ─────────────────────────── */
   if (phase === "navigating") {
+    if (routeLoading) {
+      return (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background animate-fade-in">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+          <p className="mt-4 text-sm text-muted-foreground">Computing route…</p>
+        </div>
+      );
+    }
+    if (routeError || steps.length === 0) {
+      return (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background px-6 animate-fade-in">
+          <span className="text-5xl mb-4">🚫</span>
+          <h2 className="text-xl font-bold text-foreground">No route found</h2>
+          <p className="mt-2 text-sm text-muted-foreground text-center">{routeError || "Could not compute a route between these locations."}</p>
+          <Button className="mt-6" onClick={onClose}>Back to map</Button>
+        </div>
+      );
+    }
     const step = steps[currentStep];
     return (
       <div className="fixed inset-0 z-50 flex flex-col bg-background animate-fade-in">
