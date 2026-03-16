@@ -8,7 +8,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useRouting } from "@/hooks/useRouting";
 import type { NavStep } from "@/lib/routing";
-export type { NavStep };
 
 /* ── Types ──────────────────────────────────────────────────────── */
 
@@ -20,20 +19,7 @@ export interface NavPin {
   isAccessible: boolean;
 }
 
-interface NavStep {
-  icon: "up" | "right" | "left" | "elevator" | "exit";
-  instruction: string;
-  distance: string;
-}
-
 type FlowPhase = "accessibility-modal" | "navigating" | "arrived";
-
-const SAMPLE_STEPS: NavStep[] = [
-  { icon: "elevator", instruction: "Exit the elevator on floor P1", distance: "~5m" },
-  { icon: "right", instruction: "Turn right into corridor B", distance: "~15m" },
-  { icon: "up", instruction: "Go straight past the bathrooms", distance: "~20m" },
-  { icon: "right", instruction: "Turn right, Aula F3 is on your right", distance: "~8m" },
-];
 
 /* ── Step icon renderer ─────────────────────────────────────────── */
 
